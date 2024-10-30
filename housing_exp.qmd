@@ -15,6 +15,7 @@ Lets read in our libraries and data
 ```{r}
 #| warning: false
 library(tidyverse)
+library(ggplot2)
 ```
 
 ```{r}
@@ -141,5 +142,54 @@ type_land_summary
 #                                        "var" = var,
 #                                        "sd" = sd,
 #                                        "IQR" = IQR), .names = "{.fn}_{.col}"))
+```
+
+## Plots
+
+Create at least six plots.
+∗ At least four of these should display multivariate information via the type of graph, by utilizing
+coloring, grouping, etc.
+∗ All plots should have nice labels and titles.
+∗ Some kind of faceting should be used somewhere.
+∗ At least two plots should be a plot that we didn’t cover in class (say a heatmap or something
+like that - depends on your data - lots of good examples to consider here
+
+Scatter plot (Lot Size, Price, Type)
+Scatter Plot (Rooms, Bathroom, Type)
+Side-By-Side Bar (Regionname, Type)
+Side-By-Side Bar (Rooms, Type)
+Two-new
+
+# Scatter Plots
+
+We'll do two scatter plots. For the first, the lot size on the X-axis and price on the Y-axis; color coded by type of house. For the second, the number of rooms are on the X-axis and numer of bathrooms on the Y-axis; color coded by type of house.
+
+```{r}
+scatter_lot_price <- ggplot(housing_data %>%
+                              mutate(Type = ifelse(Type == "h","Household",ifelse(Type =="t","Townhome","Unit/Apt")),
+                                     Price = Price / 1000,
+                                     Landsize = Landsize
+                              ) %>%
+                              drop_na(Price,Landsize,Type),
+            aes(x = Landsize, y = Price, color = Type)) +
+  geom_point(position="jitter") +
+  xlim(0,10000) +
+  ylim(0,9000) +
+  labs(x = "Land Size (Meters)", y= "Price (Thousands AUD)", title = "Land Size & Price Scatter by Type of Home")
+
+scatter_lot_building <- ggplot(housing_data %>%
+                              mutate(Type = ifelse(Type == "h","Household",ifelse(Type =="t","Townhome","Unit/Apt"))
+                              ) %>%
+                              drop_na(Landsize,BuildingArea,Type),
+            aes(x = Landsize, y = BuildingArea, color = Type)) +
+  geom_point(position="jitter") +
+  xlim(0,10000) +
+  ylim(0,5000) +
+  labs(x = "Land Size (Meters)", y= "Building Area (Meters)", title = "Land Size and Building area colored by house Type")
+
+
+
+scatter_lot_price
+scatter_lot_building
 ```
 
