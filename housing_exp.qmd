@@ -4,23 +4,87 @@ format: html
 editor: visual
 ---
 
-## Quarto
+## Introduction
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+Before building a Shiny Application, we want to first get familiar with our data. Our dataset of choice is Melbourne housing data
 
-## Running Code
+## Reading in Libraries and Data
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
-
-You can add options to executable code like this
+Lets read in our libraries and data
 
 ```{r}
-#| echo: false
-2 * 2
+#| warning: false
+library(tidyverse)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+```{r}
+#| warning: false
+housing_data <- read_csv(file="data/Melbourne_Housing_FULL.csv",show_col_types = FALSE)
+head(housing_data)
+```
+
+## Contingency Tables
+
+I want to create a series of one-way contingency tables to get some information on some of our variables.
+
+Observations form the table output below:
+
+1.  There are 351 different suburbs, and nothing seems to standout.
+2.  Houses dominate the "Type" attribute with \> 23k, but there is still an ample amount of townhomes (\>3k) and units (\>7k)
+3.  Metropolitan areas are more densly populated than Victoria (perhaps this represents rural areas in Melbourne)
+4.  Our most popular selling method is by property sale ("S"). Other popular (\>2k count) methods include property passed in ("PI"), property sold prior ("SP"), and vendor bid ("VB")
+5.  There are 388 distinct sellers with the top 7 selling over 1500 pieces of real estate
+
+```{r}
+one_way_contingency <- function(data,column_name){
+  column_sym <- sym(column_name)
+  return_data <- data %>%
+    drop_na(!!column_sym) %>%
+    group_by(!!column_sym) %>%
+    summarize(count=n())
+  return(return_data)
+}
+
+suburb_cntg <- one_way_contingency(housing_data,"Suburb")
+house_type_cntg <- one_way_contingency(housing_data,"Type")
+region_cntg <- one_way_contingency(housing_data,"Regionname")
+selling_method_cntg <- one_way_contingency(housing_data,"Method")
+seller_cntg <- one_way_contingency(housing_data,"SellerG") %>%
+  arrange(desc(count))
+
+suburb_cntg
+house_type_cntg
+region_cntg
+selling_method_cntg
+seller_cntg
+```
+
+Now for some two way contingency tables. Some observations include...
+
+1.  Two, Three and Four room homes with 1-2 bathrooms seem the most popular. This makes sense
+2.  At first glance, the distribution of housing types across regions seem similar
+3.  Units dominate 1-2 room homes. Anything with 3+ rooms tends to be a house. This observation also makes sense
+
+```{r}
+two_way_contingency <- function(data,column_vec){
+  if(length(column_vec) != 2){
+    stop("You can only pass two columns when creating a two way contingency table")
+  }
+  column_a <- sym(column_vec[1])
+  column_b <- sym(column_vec[2])
+  return_data <- data %>%
+    drop_na(!!column_a,!!column_b) %>%
+    group_by(!!column_a,!!column_b) %>%
+    summarize(count=n())
+  return(return_data)
+}
+
+room_bath_cntg <- two_way_contingency(housing_data,c("Rooms","Bathroom"))
+region_type_cntg <- two_way_contingency(housing_data,c("Regionname","Type"))
+room_type_cntg <- two_way_contingency(housing_data,c("Rooms","Type"))
+
+room_bath_cntg
+region_type_cntg
+room_type_cntg
+
+```
