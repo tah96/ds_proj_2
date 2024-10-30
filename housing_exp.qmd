@@ -88,3 +88,58 @@ region_type_cntg
 room_type_cntg
 
 ```
+
+## Numeric Summaries
+
+For some our of numeric variables, we want to create some summary statistics at various levels of some of our categorical variables.
+
+Some observations are:
+
+1.  Houses have the highest median price of over 1M AUD followed by Townhomes at ~850k AUD
+2.  Houses have the largest spread (standard deviation) in land size while townhomes have the smallest, which makes sense
+3.  Median home prices increase with the number of rooms up until about 6 rooms.
+4.  Median land size increases with the number of rooms up until about 6 rooms.
+
+```{r}
+summarize_numeric <- function(data,numericVar,catVar){
+  if(length(numericVar) != 1 | length(catVar) != 1){
+    stop("Please enter one (and one only) numeric variable and categorical variable")
+  }
+  numericSym <- sym(numericVar)
+  catSym <- sym(catVar)
+
+  return_data <- data %>%
+    select(!!numericSym,!!catSym) %>%
+    drop_na(!!numericSym,!!catSym) %>%
+    group_by(!!catSym) %>%
+    summarize(across(everything(), .fns = list("mean" = mean,
+                                        "median" = median,
+                                        "var" = var,
+                                        "sd" = sd,
+                                        "IQR" = IQR), .names = "{.fn}_{.col}"))
+  
+  return(return_data)
+}
+
+type_price_summary <- summarize_numeric(data=housing_data,numericVar="Price",catVar="Type")
+rooms_price_summary <- summarize_numeric(data=housing_data,numericVar="Price",catVar="Rooms")
+rooms_land_summary <- summarize_numeric(data=housing_data,numericVar="Landsize",catVar="Rooms")
+type_land_summary <- summarize_numeric(data=housing_data,numericVar="Landsize",catVar="Type")
+
+type_price_summary
+rooms_price_summary
+rooms_land_summary
+type_land_summary
+
+
+# ageAbsGroupMetrics <- merged_data %>%
+#   select(age,absences.x,G1.x,G2.x,G3.x) %>%
+#   group_by(age,absences.x) %>%
+#   drop_na(age,absences.x,G1.x,G2.x,G3.x) %>%
+#   summarize(across(everything(), .fns = list("mean" = mean,
+#                                        "median" = median,
+#                                        "var" = var,
+#                                        "sd" = sd,
+#                                        "IQR" = IQR), .names = "{.fn}_{.col}"))
+```
+
