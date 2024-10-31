@@ -16,6 +16,7 @@ Lets read in our libraries and data
 #| warning: false
 library(tidyverse)
 library(ggplot2)
+library(see)
 ```
 
 ```{r}
@@ -191,5 +192,54 @@ scatter_lot_building <- ggplot(housing_data %>%
 
 scatter_lot_price
 scatter_lot_building
+```
+
+## Side-By-Side Bars
+
+We'll do two stacked bar graphs. One for Region and one for Selling Method. Each will be colored by Type.
+
+```{r}
+region_name_bar <- ggplot(housing_data %>% 
+                            drop_na(Regionname,Type) %>%
+                            mutate(Type = ifelse(Type == "h","Household",ifelse(Type =="t","Townhome","Unit/Apt"))
+                              ) %>%
+                            filter(Regionname != '#N/A')
+                            ,aes(x = Regionname,fill=Type)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Regionname", y = "Real Estate Sold", title = "Number of Home Sales by Region")
+
+sell_type_bar <- ggplot(housing_data %>% 
+                            drop_na(Method,Type) %>%
+                            mutate(Type = ifelse(Type == "h","Household",ifelse(Type =="t","Townhome","Unit/Apt"))
+                              )
+                            ,aes(x = Method,fill=Type)) +
+  geom_bar() +
+  labs(x = "Selling Method", y = "Real Estate Sold", title = "Number of Home Sales by Selling Method")
+
+region_name_bar
+sell_type_bar
+
+
+```
+## Other plots
+
+Aside from basic plots, we can also do some pretty cool ones. 
+
+We have one here that uses a half-violin plot from the `see` library to visualize the distribution of price across Regions. The other is a correlation matrix from the `correlation` library where we're looking at the correlation among a few of our true numeric variables.
+
+```{r}
+region_price_half_vio <- ggplot(housing_data %>% drop_na(Regionname,Price) %>% mutate(Price = Price/1000), aes(x = Regionname, y = Price, fill = Regionname)) +
+  geom_violindot(fill_dots = "black") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Regionname", y = "Price", title = "Number of Home Sales by Region")
+
+
+correlations <- summary(correlation::correlation(housing_data %>% select(Rooms, Bathroom, Landsize, Price)))
+
+correlation_plot <- plot(results, show_data = "points")
+
+region_price_half_vio
+correlation_plot
 ```
 
