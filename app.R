@@ -35,14 +35,25 @@ ui <- fluidPage(
   )
 )
 
-housing_data <- read_csv(file="data/Melbourne_Housing_FULL.csv",show_col_types = FALSE)
-
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   data <- reactiveValues(processed_data = NULL)
   
   observeEvent(input$getHousing,{
-    print("You pressed a button! All inputs will be processed here in the future.")
+    if("All" %in% input$type){
+      type = "All"
+    } else {
+      type = input$type
+    }
+    subset <- housing_data %>%
+      filter(
+        (Price <= (input$price[2] * 1000) & Price >= (input$price[1] * 1000)) &
+        (Date >= input$saleDate[1] & Date <= input$saleDate[2])
+      ) %>%
+      {if(!("All" %in% type)) filter(., Type %in% type) else .} %>%
+      {if(input$region != "All") filter(., Regionname == input$region) else .}
+    
+    data$processed_data <- subset
   })
 }
 
