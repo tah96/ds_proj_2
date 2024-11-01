@@ -31,7 +31,27 @@ ui <- fluidPage(
       ),
       actionButton("getHousing","Process My Inputs!")
     ),
-    mainPanel()
+    mainPanel(
+      tabsetPanel(
+        tabPanel(strong("About"),
+                 br(),
+                 fluidRow(strong("Purpose:"),
+                          "The purpose of this project is to showcase how we can use Shiny to build an interactive dashboard
+                          for exploring housing data in Melbourne from 2016 to 2018."
+                          ),
+                 br(),
+                 fluidRow(strong("Data & Source Links:"),
+                          "Some content about the data and and outbound link to the kaggle dataset will go here"
+                          )
+                 ),
+        tabPanel(strong("Data Download"),
+                 "Data Download Contents"
+                 ),
+        tabPanel(strong("Data Exploration"),
+                 "Data Exploration Contents"
+                 )
+      )
+    )
   )
 )
 
