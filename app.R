@@ -28,7 +28,8 @@ ui <- fluidPage(
         "price", "Price (Thousands AUD)", 
         min = min(housing_data$Price)/1000, max = max(housing_data$Price)/1000, 
         value = c(350, 2000) 
-      )
+      ),
+      actionButton("getHousing","Process My Inputs!")
     ),
     mainPanel()
   )
@@ -38,7 +39,11 @@ housing_data <- read_csv(file="data/Melbourne_Housing_FULL.csv",show_col_types =
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+  data <- reactiveValues(processed_data = NULL)
   
+  observeEvent(input$getHousing,{
+    print("You pressed a button! All inputs will be processed here in the future.")
+  })
 }
 
 # Run the application 
