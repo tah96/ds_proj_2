@@ -1,5 +1,6 @@
 library(shiny)
 library(shinyalert)
+library(bslib)
 library(DT)
 library(tidyverse)
 source("helpers.R")
@@ -24,13 +25,6 @@ ui <- fluidPage(
                   max = max(housing_data$Date),
                   value=c(min(housing_data$Date),max(housing_data$Date))
       ),
-      ### Need to figure date out
-      #dateRangeInput('saleDate',
-      #               label = 'Selling Date Range',
-      #               start = min(housing_data$Date), end = max(housing_data$Date),
-      #               min = min(housing_data$Date), max = max(housing_data$Date),
-      #               separator = " to ", format = "mm-dd-yyyy"
-      #),
       sliderInput( 
         "price", "Price (Thousands AUD)", 
         min = min(housing_data$Price)/1000, max = max(housing_data$Price)/1000, 
@@ -71,7 +65,42 @@ ui <- fluidPage(
                  downloadLink('downloadData', 'Download')
                  ),
         tabPanel(strong("Data Exploration"),
-                 "Data Exploration Contents"
+                 tabsetPanel(
+                   tabPanel(strong("Categorical Variables"),
+                            column(3,
+                                   checkboxGroupInput("typeExp", label = "Housing Type", 
+                                                          choices = c("All",type_vector),
+                                                          selected="All"),
+                                   checkboxGroupInput("methodExp",label = "Selling Method",
+                                                      choices = c("All",method_vector),
+                                                      selected = "All"
+                                                      ),
+                                   checkboxGroupInput("regionExp",label="Region",
+                                                      choices = region_vector,
+                                                      selected = "All"
+                                                      ),
+                                   selectInput("sellerExp", label = "Real Estate Agent", 
+                                               choices = seller_vector, 
+                                               selected = seller_vector[1]),
+                                   ## Likely will have to come update
+                                   checkboxGroupInput("roomsExp",label="Number Rooms",
+                                                      choices = room_vector,
+                                                      selected = "All"
+                                    ),
+                                   checkboxGroupInput("bathroomsExp",label="Number Bathrooms",
+                                                      choices = bathroom_vector,
+                                                      selected = "All"
+                                   ),
+                                   actionButton("getCategoricacl","Show me the categorical summaries")
+                                   )
+                            ),
+                   tabPanel(strong("Numeric Variable"),
+                            h3("Numeric variable placeholder")
+                    ),
+                   tabPanel(strong("Combination Summaries/Plots"),
+                            h3("Combination placeholder")
+                            )
+                  )
                  )
       )
     )

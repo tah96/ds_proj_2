@@ -134,15 +134,7 @@ rooms_land_summary
 type_land_summary
 
 
-# ageAbsGroupMetrics <- merged_data %>%
-#   select(age,absences.x,G1.x,G2.x,G3.x) %>%
-#   group_by(age,absences.x) %>%
-#   drop_na(age,absences.x,G1.x,G2.x,G3.x) %>%
-#   summarize(across(everything(), .fns = list("mean" = mean,
-#                                        "median" = median,
-#                                        "var" = var,
-#                                        "sd" = sd,
-#                                        "IQR" = IQR), .names = "{.fn}_{.col}"))
+
 ```
 
 ## Plots
