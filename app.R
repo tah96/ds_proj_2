@@ -66,40 +66,54 @@ ui <- fluidPage(
                  ),
         tabPanel(strong("Data Exploration"),
                  tabsetPanel(
-                   tabPanel(strong("Categorical Variables"),
+                   tabPanel(strong("Categorical Summaries (Tables)"),
+                            br(),
                             column(3,
-                                   checkboxGroupInput("typeExp", label = "Housing Type", 
-                                                          choices = c("All",type_vector),
-                                                          selected="All"),
-                                   checkboxGroupInput("methodExp",label = "Selling Method",
-                                                      choices = c("All",method_vector),
-                                                      selected = "All"
-                                                      ),
-                                   checkboxGroupInput("regionExp",label="Region",
-                                                      choices = region_vector,
-                                                      selected = "All"
-                                                      ),
-                                   selectInput("sellerExp", label = "Real Estate Agent", 
-                                               choices = seller_vector, 
-                                               selected = seller_vector[1]),
-                                   ## Likely will have to come update
-                                   checkboxGroupInput("roomsExp",label="Number Rooms",
-                                                      choices = room_vector,
-                                                      selected = "All"
-                                    ),
-                                   checkboxGroupInput("bathroomsExp",label="Number Bathrooms",
-                                                      choices = bathroom_vector,
-                                                      selected = "All"
-                                   ),
-                                   actionButton("getCategoricacl","Show me the categorical summaries")
-                                   )
+                                   selectInput("catVars", label = "Categorical Variable to Summarize", 
+                                                      choices = cat_vars,
+                                                      selected = cat_vars[1]),
+                                   ## Need to update based on first selected
+                                   selectInput("catVarsAcross", label = "Summarize Across",
+                                               choices = c("",cat_vars),
+                                               selected = ""),
+                                   actionButton("getCont","Generate Summary Tables")
                             ),
-                   tabPanel(strong("Numeric Variable"),
-                            h3("Numeric variable placeholder")
-                    ),
-                   tabPanel(strong("Combination Summaries/Plots"),
-                            h3("Combination placeholder")
+                            column(9,
+                                   strong("One Way Contingency"),
+                                   br(),
+                                   DT::dataTableOutput("oneTable"),
+                                   br(),
+                                   br(),
+                                   strong("Two Way Contingency"),
+                                   br(),
+                                   DT::dataTableOutput("twoTable")
+                                   )
+                   ),
+                   tabPanel(strong("Categorical Summaries (Graphs)"),
+                            br(),
+                            column(3,
+                                   selectInput("catVarsGraph", label = "Categorical Variable to Summarize", 
+                                               choices = cat_vars,
+                                               selected = cat_vars[1]),
+                                   ## Need to update based on first selected
+                                   selectInput("catVarsAcrossGraph", label = "Fill Variable",
+                                               choices = c("None",cat_vars),
+                                               selected = "None"),
+                                   actionButton("getBar","Generate Plots")
+                            ),
+                            column(9,
+                                   strong("Generated Plot"),
+                                   plotOutput("bar")
                             )
+                   ),
+                   tabPanel(strong("Numerical Summaries"),
+                            br(),
+                            column(3,
+                                   selectInput("numericVars", label = "Numeric Variables (Select 3 or less)", 
+                                                      choices = c("All",numeric_vars),
+                                                      selected = "All")    
+                            )
+                   )
                   )
                  )
       )
@@ -109,7 +123,7 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-  data <- reactiveValues(processed_data = NULL)
+  data <- reactiveValues(processed_data = NULL,one_way_table = NULL, two_way_table = NULL, single_bar = NULL, fill_bar = NULL)
   
   observeEvent(input$getHousing,{
     if("All" %in% input$type){
@@ -128,8 +142,45 @@ server <- function(input, output, session) {
     data$processed_data <- subset
   })
   
+  observeEvent(input$getCont,{
+    if(!is.null(data$processed_data)){
+      data$one_way_table <- one_way_contingency(data$processed_data,input$catVars)
+      if(input$catVarsAcross != '' & input$catVarsAcross != input$catVars){
+        data$two_way_table <- two_way_contingency(data$processed_data,c(input$catVars,input$catVarsAcross))
+      } else {
+        data$two_way_table <- NULL
+      }
+    }
+  })
+  
+  observeEvent(input$getBar,{
+    if(!is.null(data$processed_data)){
+      if(input$catVarsAcrossGraph == "None"){
+        output$bar <- renderPlot({
+          single_bar <- singleVarBar(data$processed_data,isolate(input$catVarsGraph))
+          plot(single_bar)
+        })
+      } else {
+        output$bar <- renderPlot({
+          fill_bar <- fillVarBar(data$processed_data,column_name = isolate(input$catVarsGraph),
+                                   fill_column = isolate(input$catVarsAcrossGraph)
+                                   )
+          plot(fill_bar)
+        })
+      }
+    }
+  })
+  
   output$dataTable = DT::renderDataTable({
     data$processed_data
+  })
+  
+  output$oneTable = DT::renderDataTable({
+    data$one_way_table
+  })
+  
+  output$twoTable = DT::renderDataTable({
+    data$two_way_table
   })
   
   output$downloadData <- downloadHandler(
