@@ -94,3 +94,34 @@ fillVarBar <- function(data, column_name, fill_column){
     labs(x = column_name, y = "Real Estate Sold", title = paste0("Number of Home Sales by ",column_name, " and ", fill_column))
   return(plot)
 }
+
+summarizeNumeric <- function(data,numericVar,catVar="None"){
+  if(length(numericVar) != 1){
+    stop("Please enter at least one numeric variable")
+  }
+  numericSym <- sym(numericVar)
+  catSym <- sym(catVar)
+  
+  if(catVar == "None"){
+    return_data <- data %>%
+      select(!!numericSym) %>%
+      drop_na(!!numericSym) %>%
+      summarize(across(everything(), .fns = list("mean" = mean,
+                                                 "median" = median,
+                                                 "var" = var,
+                                                 "sd" = sd,
+                                                 "IQR" = IQR), .names = "{.fn}_{.col}"))
+  } else {
+    return_data <- data %>%
+      select(!!numericSym,!!catSym) %>%
+      drop_na(!!numericSym,!!catSym) %>%
+      group_by(!!catSym) %>%
+      summarize(across(everything(), .fns = list("mean" = mean,
+                                                 "median" = median,
+                                                 "var" = var,
+                                                 "sd" = sd,
+                                                 "IQR" = IQR), .names = "{.fn}_{.col}"))
+  }
+  
+  return(return_data)
+}

@@ -106,12 +106,20 @@ ui <- fluidPage(
                                    plotOutput("bar")
                             )
                    ),
-                   tabPanel(strong("Numerical Summaries"),
+                   tabPanel(strong("Numerical Summaries (Tables)"),
                             br(),
                             column(3,
-                                   selectInput("numericVars", label = "Numeric Variables (Select 3 or less)", 
-                                                      choices = c("All",numeric_vars),
-                                                      selected = "All")    
+                                   selectInput("numVars", label = "Numerical Variable to Summarize", 
+                                               choices = numeric_vars,
+                                               selected = numeric_vars[1]),
+                                   selectInput("catVarsAcrossNum", label = "Categorical Variable to Group By",
+                                               choices = c("None",cat_vars),
+                                               selected = "None"),
+                                   actionButton("getNumSum","Get Numeric Summaries")
+                            ),
+                            column(9,
+                                   strong("Summary"),
+                                   DT::dataTableOutput("numTable")
                             )
                    )
                   )
@@ -168,6 +176,17 @@ server <- function(input, output, session) {
           plot(fill_bar)
         })
       }
+    }
+  })
+  
+  observeEvent(input$getNumSum,{
+    if(!is.null(data$processed_data)){
+      print(input$numVars)
+      print(input$catVarsAcrossNums)
+      #if(input$catVarsAcrossNum)
+      dataTable <- summarizeNumeric(data$processed_data,numericVar = isolate(input$numVars),
+                                    catVar=isolate(input$catVarsAcrossNum))
+      output$numTable = DT::renderDataTable(dataTable)
     }
   })
   
