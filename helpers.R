@@ -125,3 +125,34 @@ summarizeNumeric <- function(data,numericVar,catVar="None"){
   
   return(return_data)
 }
+
+generateScatter <- function(data,x_var,y_var,fill_var="None"){
+  xSym <- sym(x_var)
+  ySym <- sym(y_var)
+  fillSym <- sym(fill_var)
+  
+  if(fill_var != "None"){
+    return_plot <- ggplot(data %>%
+                            drop_na(!!xSym,!!ySym,!!fillSym),
+                          aes(x = !!xSym,y= !!ySym, color=!!fillSym)) +
+      geom_point(position="jitter") +
+      labs(x = x_var, y = y_var, title = paste0(x_var," and ", y_var, "scatter plot colored by", fill_var))
+  } else {
+    return_plot <- ggplot(data %>%
+                            drop_na(!!xSym,!!ySym),
+                          aes(x = !!xSym,y= !!ySym)) +
+      geom_point(position="jitter") +
+      labs(x = x_var, y = y_var, title = paste0(x_var," and ", y_var, "scatter plot"))
+  }
+  return(return_plot)
+}
+
+ggplot(housing_data %>%
+         mutate(Type = ifelse(Type == "h","Household",ifelse(Type =="t","Townhome","Unit/Apt"))
+         ) %>%
+         drop_na(Landsize,BuildingArea,Type),
+       aes(x = Landsize, y = BuildingArea, color = Type)) +
+  geom_point(position="jitter") +
+  xlim(0,10000) +
+  ylim(0,5000) +
+  labs(x = "Land Size (Meters)", y= "Building Area (Meters)", title = "Land Size and Building area colored by house Type")

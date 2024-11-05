@@ -106,7 +106,7 @@ ui <- fluidPage(
                                    plotOutput("bar")
                             )
                    ),
-                   tabPanel(strong("Numerical Summaries (Tables)"),
+                   tabPanel(strong("Numeric Summaries (Tables)"),
                             br(),
                             column(3,
                                    selectInput("numVars", label = "Numerical Variable to Summarize", 
@@ -121,7 +121,26 @@ ui <- fluidPage(
                                    strong("Summary"),
                                    DT::dataTableOutput("numTable")
                             )
-                   )
+                   ),
+                   tabPanel(strong("Numeric Summaries (Graphs)"),
+                            br(),
+                            column(3,
+                                   selectInput("xNumVar", label = "X-axis variable",
+                                               choices = numeric_vars,
+                                               selected = numeric_vars[1]),
+                                   selectInput("yNumVar", label = "X-axis variable",
+                                               choices = numeric_vars,
+                                               selected = numeric_vars[2]),
+                                   selectInput("scatFill", label = "Fill variable",
+                                               choices = c("None",cat_vars),
+                                               selected = "None"),
+                                   actionButton("getNumPlot","Generate Plot")
+                                   ),
+                            column(9,
+                                   strong("Generated Plot"),
+                                   plotOutput("scatter")
+                                   )
+                            )
                   )
                  )
       )
@@ -181,14 +200,24 @@ server <- function(input, output, session) {
   
   observeEvent(input$getNumSum,{
     if(!is.null(data$processed_data)){
-      print(input$numVars)
-      print(input$catVarsAcrossNums)
-      #if(input$catVarsAcrossNum)
       dataTable <- summarizeNumeric(data$processed_data,numericVar = isolate(input$numVars),
                                     catVar=isolate(input$catVarsAcrossNum))
       output$numTable = DT::renderDataTable(dataTable)
     }
   })
+  
+  observeEvent(input$getNumPlot,{
+    if(!is.null(data$processed_data)){
+        output$scatter <- renderPlot({
+          single_scatter <- generateScatter(data$processed_data,x_var=isolate(input$xNumVar),
+                                            y_var=isolate(input$yNumVar),
+                                            fill_var = isolate(input$scatFill)
+                                            )
+          plot(single_scatter)
+        })
+    }
+  })
+  
   
   output$dataTable = DT::renderDataTable({
     data$processed_data
