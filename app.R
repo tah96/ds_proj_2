@@ -91,7 +91,7 @@ ui <- fluidPage(
                                    DT::dataTableOutput("twoTable")
                                    )
                    ),
-                   tabPanel(strong("Categorical Summaries (Graphs)"),
+                   tabPanel(strong("Categorical Summaries (Bar Plots)"),
                             br(),
                             column(3,
                                    selectInput("catVarsGraph", label = "Categorical Variable to Summarize", 
@@ -124,13 +124,13 @@ ui <- fluidPage(
                                    DT::dataTableOutput("numTable")
                             )
                    ),
-                   tabPanel(strong("Numeric Summaries (Graphs)"),
+                   tabPanel(strong("Numeric Summaries (Scatterplots)"),
                             br(),
                             column(3,
                                    selectInput("xNumVar", label = "X-axis variable",
                                                choices = numeric_vars,
                                                selected = numeric_vars[1]),
-                                   selectInput("yNumVar", label = "X-axis variable",
+                                   selectInput("yNumVar", label = "Y-axis variable",
                                                choices = numeric_vars,
                                                selected = numeric_vars[2]),
                                    selectInput("scatFill", label = "Fill variable",
