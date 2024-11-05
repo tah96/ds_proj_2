@@ -178,7 +178,9 @@ scatter_lot_building <- ggplot(housing_data %>%
   geom_point(position="jitter") +
   xlim(0,10000) +
   ylim(0,5000) +
-  labs(x = "Land Size (Meters)", y= "Building Area (Meters)", title = "Land Size and Building area colored by house Type")
+  labs(x = "Land Size (Meters)", y= "Building Area (Meters)", title = "Land Size and Building area colored by house Type") +
+  facet_wrap(~ Regionname) +
+  labs(title = 'First & Final Math Grade Scatter - Extracurricular Segmentation')
 
 
 

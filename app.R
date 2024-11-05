@@ -56,7 +56,7 @@ ui <- fluidPage(
                             to data in your download and data exploration")
                           ),
                  br(),
-                 fluidRow(img(src="data/austrailia.png"))
+                 fluidRow(tags$img(src="austrailia.jpg"))
                  ),
         tabPanel(strong("Data Download"),
                  br(),
@@ -84,7 +84,9 @@ ui <- fluidPage(
                                    DT::dataTableOutput("oneTable"),
                                    br(),
                                    br(),
-                                   strong("Two Way Contingency"),
+                                   uiOutput("twoWayContingency"),
+                                   #textOutput(outputId = "twoWayContingency")
+                                   #strong("Two Way Contingency"),
                                    br(),
                                    DT::dataTableOutput("twoTable")
                                    )
@@ -174,8 +176,15 @@ server <- function(input, output, session) {
       data$one_way_table <- one_way_contingency(data$processed_data,input$catVars)
       if(input$catVarsAcross != '' & input$catVarsAcross != input$catVars){
         data$two_way_table <- two_way_contingency(data$processed_data,c(input$catVars,input$catVarsAcross))
+        output$twoWayContingency <- renderUI({
+          strong("Two Way Contingency")
+        })
       } else {
         data$two_way_table <- NULL
+        output$twoWayContingency <- renderUI({
+          text <- paste0("You have selected ", isolate(input$catVars),". Please select another to see a two way contingency table")
+          p(text)
+      })
       }
     }
   })

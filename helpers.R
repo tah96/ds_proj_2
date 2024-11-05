@@ -17,7 +17,6 @@ seller_vector <- c("All",sort(unique(housing_data$SellerG[which(housing_data$Sel
 cat_vars <- c(
   "Region" = "Regionname",
   "House Type" = "Type",
-  "Real Estate Agent" = "SellerG",
   "Selling Method" = "Method",
   "Number Rooms" = "Rooms",
   "Number Bathrooms" = "Bathroom"
