@@ -1,7 +1,7 @@
 library(tidyverse)
 library(lubridate)
 
-housing_data <- read_csv(file="data/Melbourne_Housing_FULL.csv",show_col_types = FALSE) %>%
+housing_data <- read_csv(file="housing.csv",show_col_types = FALSE) %>%
   drop_na(Regionname,Type,Price,Date,Rooms,Bathroom,SellerG,Method) %>%
   mutate(
     Date = dmy(Date),

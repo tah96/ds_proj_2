@@ -5,8 +5,6 @@ library(DT)
 library(tidyverse)
 source("helpers.R")
 
-#housing_data <- read_csv(file="data/Melbourne_Housing_FULL.csv",show_col_types = FALSE)
-
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   titlePanel("Melbourne Housing Project"),
