@@ -3,6 +3,7 @@ library(shinyalert)
 library(bslib)
 library(DT)
 library(tidyverse)
+library(shinycssloaders)
 source("helpers.R")
 
 # Define UI for application that draws a histogram
@@ -65,12 +66,13 @@ ui <- fluidPage(
         tabPanel(strong("Data Exploration"),
                  tabsetPanel(
                    tabPanel(strong("Categorical Summaries (Tables)"),
+                            fluidRow(style = "background-color: #FFFF00;","Please click the Action Button to see the table or graph populated with your selections"
+                            ),
                             br(),
                             column(3,
                                    selectInput("catVars", label = "Categorical Variable to Summarize", 
                                                       choices = cat_vars,
                                                       selected = cat_vars[1]),
-                                   ## Need to update based on first selected
                                    selectInput("catVarsAcross", label = "Summarize Across",
                                                choices = c("",cat_vars),
                                                selected = ""),
@@ -79,34 +81,42 @@ ui <- fluidPage(
                             column(9,
                                    strong("One Way Contingency"),
                                    br(),
-                                   DT::dataTableOutput("oneTable"),
+                                   shinycssloaders::withSpinner(
+                                     DT::dataTableOutput("oneTable") 
+                                   ),
                                    br(),
                                    br(),
                                    uiOutput("twoWayContingency"),
-                                   #textOutput(outputId = "twoWayContingency")
-                                   #strong("Two Way Contingency"),
                                    br(),
-                                   DT::dataTableOutput("twoTable")
+                                   shinycssloaders::withSpinner(
+                                     DT::dataTableOutput("twoTable")
                                    )
+                            )
                    ),
                    tabPanel(strong("Categorical Summaries (Bar Plots)"),
+                            fluidRow(style = "background-color: #FFFF00;","Please click the Action Button to see the table or graph populated with your selections"
+                            ),
                             br(),
                             column(3,
                                    selectInput("catVarsGraph", label = "Categorical Variable to Summarize", 
                                                choices = cat_vars,
                                                selected = cat_vars[1]),
-                                   ## Need to update based on first selected
                                    selectInput("catVarsAcrossGraph", label = "Fill Variable",
                                                choices = c("None",cat_vars),
                                                selected = "None"),
-                                   actionButton("getBar","Generate Plots")
+                                   actionButton("getBar","Generate Plots"),
+                                   uiOutput("getBarActionNeeded")
                             ),
                             column(9,
                                    strong("Generated Plot"),
-                                   plotOutput("bar")
+                                   shinycssloaders::withSpinner(
+                                     plotOutput("bar")
+                                   )
                             )
                    ),
                    tabPanel(strong("Numeric Summaries (Tables)"),
+                            fluidRow(style = "background-color: #FFFF00;","Please click the Action Button to see the table or graph populated with your selections"
+                            ),
                             br(),
                             column(3,
                                    selectInput("numVars", label = "Numerical Variable to Summarize", 
@@ -119,10 +129,15 @@ ui <- fluidPage(
                             ),
                             column(9,
                                    strong("Summary"),
-                                   DT::dataTableOutput("numTable")
+                                   shinycssloaders::withSpinner(
+                                     DT::dataTableOutput("numTable")
+                                   )
                             )
                    ),
-                   tabPanel(strong("Numeric Summaries (Scatterplots)"),
+                   tabPanel(
+                     strong("Numeric Summaries (Scatterplots)"),
+                     fluidRow(style = "background-color: #FFFF00;","Please click the Action Button to see the table or graph populated with your selections"
+                     ),
                             br(),
                             column(3,
                                    selectInput("xNumVar", label = "X-axis variable",
@@ -138,7 +153,9 @@ ui <- fluidPage(
                                    ),
                             column(9,
                                    strong("Generated Plot"),
-                                   plotOutput("scatter")
+                                   shinycssloaders::withSpinner(
+                                     plotOutput("scatter")
+                                   )
                                    )
                             )
                   )
@@ -150,7 +167,7 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-  data <- reactiveValues(processed_data = NULL,one_way_table = NULL, two_way_table = NULL, single_bar = NULL, fill_bar = NULL)
+  data <- reactiveValues(processed_data = NULL,one_way_table = NULL, two_way_table = NULL, single_bar = ggplot(), num_table = NULL, scatter = ggplot())
   
   observeEvent(input$getHousing,{
     if("All" %in% input$type){
@@ -190,16 +207,17 @@ server <- function(input, output, session) {
   observeEvent(input$getBar,{
     if(!is.null(data$processed_data)){
       if(input$catVarsAcrossGraph == "None"){
+        data$single_bar <- singleVarBar(data$processed_data,isolate(input$catVarsGraph))
         output$bar <- renderPlot({
-          single_bar <- singleVarBar(data$processed_data,isolate(input$catVarsGraph))
-          plot(single_bar)
+          #single_bar <- singleVarBar(data$processed_data,isolate(input$catVarsGraph))
+          plot(data$single_bar)
         })
       } else {
+        data$single_bar <- fillVarBar(data$processed_data,column_name = isolate(input$catVarsGraph),
+                                      fill_column = isolate(input$catVarsAcrossGraph)
+        )
         output$bar <- renderPlot({
-          fill_bar <- fillVarBar(data$processed_data,column_name = isolate(input$catVarsGraph),
-                                   fill_column = isolate(input$catVarsAcrossGraph)
-                                   )
-          plot(fill_bar)
+          plot(data$single_bar)
         })
       }
     }
@@ -209,18 +227,20 @@ server <- function(input, output, session) {
     if(!is.null(data$processed_data)){
       dataTable <- summarizeNumeric(data$processed_data,numericVar = isolate(input$numVars),
                                     catVar=isolate(input$catVarsAcrossNum))
-      output$numTable = DT::renderDataTable(dataTable)
+      data$num_table <- dataTable
+      
+      output$numTable = DT::renderDataTable(data$num_table)
     }
   })
   
   observeEvent(input$getNumPlot,{
     if(!is.null(data$processed_data)){
+      data$scatter <- generateScatter(data$processed_data,x_var=isolate(input$xNumVar),
+                                      y_var=isolate(input$yNumVar),
+                                      fill_var = isolate(input$scatFill)
+      )
         output$scatter <- renderPlot({
-          single_scatter <- generateScatter(data$processed_data,x_var=isolate(input$xNumVar),
-                                            y_var=isolate(input$yNumVar),
-                                            fill_var = isolate(input$scatFill)
-                                            )
-          plot(single_scatter)
+          plot(data$scatter)
         })
     }
   })
@@ -236,6 +256,18 @@ server <- function(input, output, session) {
   
   output$twoTable = DT::renderDataTable({
     data$two_way_table
+  })
+  
+  output$numTable = DT::renderDataTable({
+    data$num_table
+  })
+  
+  output$bar = renderPlot({
+    plot(data$single_bar)
+  })
+  
+  output$scatter <- renderPlot({
+    plot(data$scatter)
   })
   
   output$downloadData <- downloadHandler(
