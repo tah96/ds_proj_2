@@ -5,6 +5,6 @@ account: tahunt2
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 13246215
-bundleId: 9321212
+bundleId: 9326275
 url: https://tahunt2.shinyapps.io/ds_proj_2/
 version: 1
